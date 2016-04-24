@@ -57,6 +57,30 @@ def map_coords(func, obj):
         raise ValueError("Invalid geometry object %s" % repr(obj))
     return {'type': obj['type'], 'coordinates': coordinates}
 
+def transform_coords(obj,func):
+    """
+    Returns the transformed coordinates from a Geometry after applying the provided
+    function to the tuples.
+    :param func: Function to apply to tuples
+    :type func: function
+    :param obj: A geometry or feature to extract the coordinates from.
+    :type obj: Point, LineString, MultiPoint, MultiLineString, Polygon,
+    MultiPolygon
+    :return: The result of applying the function to each coordinate array.
+    :rtype: list
+    :raises ValueError: if the provided object is not a Geometry.
+    """
+    if obj['type'] == 'Point':
+        coordinates = tuple(func(obj['coordinates']))
+    elif obj['type'] in ['LineString', 'MultiPoint']:
+        coordinates = tuple([func(c)for c in obj['coordinates']])
+    elif obj['type'] in ['MultiLineString', 'Polygon']:
+        coordinates = [[tuple(func(c)) for c in curve] for curve in obj['coordinates']]
+    elif obj['type'] == 'MultiPolygon':
+        coordinates = [[[tuple(func(c)) for c in curve] for curve in part] for part in obj['coordinates']]
+    else:
+        raise ValueError("Invalid geometry object %s" % repr(obj))
+    return {'type': obj['type'], 'coordinates': coordinates}
 
 def generate_random(featureType, numberVertices=3,
                     boundingBox=[-180.0, -90.0, 180.0, 90.0]):
